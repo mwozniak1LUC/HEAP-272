@@ -5,88 +5,93 @@ public class MaxHeap<E extends Comparable<E>> extends ArrayList<E>   {
 
     /** constructs empty heap **/
     public MaxHeap(){
-        this.heap = new ArrayList<E>();
+        heap = new ArrayList<E>();
     }
 
-    /** returns max value **/
+    /** returns index of parent of currentIndex **/
+    public int parent(int currentIndex) {
+        if (currentIndex == 0) {
+            throw new IllegalArgumentException("Invalid index (no parent)");
+        } else {
+            return ((currentIndex - 1) / 2);
+        }
+    }
+
+    /** returns index of leftChild of currentIndex **/
+    public int leftChild(int currentIndex){
+        return currentIndex * 2 + 1;
+    }
+
+    /** returns index of rightChild of currentIndex **/
+    public int rightChild(int currentIndex){
+        return currentIndex * 2 + 2;
+    }
+
+
+    /** returns max value in the heap **/
     public E findMax() {
-        return this.heap.get(0);
+        if (this.heap.get(0) != null)
+            return this.heap.get(0);
+        else {
+            return null;
+        }
     }
 
-    /** swaps two given positions in heap **/
-    private void swap(int position1, int position2) {
-        E holder = this.heap.get(position1);
-        this.heap.set(position1, this.heap.get(position2));
-        this.heap.set(position2, holder);
-    }
-
-    /** adds new value to heap and swaps it to it's correct position **/
+    /** adds new value to heap and swaps it to it's correct position using siftUp**/
     public void addHeap(E val) {
-        int current = this.heap.size();
         this.heap.add(val);
-        while(this.heap.get((current - 1) / 2).compareTo(val) < 0) {
-            int parent = (current - 1) / 2;
-            this.swap(parent, current);
-            current = parent;
-        }
+        siftUp(this.heap.size() - 1);
     }
 
-    //returns the max value at the root of the heap by swapping the last value
-    // and percolating the value down from the root to preserve max heap property
-    // children of node at i are given by the formula 2i+1,2i+2, to not exceed the
-    // bounds of the Heap index, namely, 0 ... size()-1.
-    // throw appropriate exception
+    /** swaps max value with last value and then returns swapped value to appropriate position, removing and returning max **/
     public E removeHeap() {
-
+        E max = findMax();
+        Collections.swap(this.heap, 0, this.heap.size() - 1);
+        this.heap.remove(this.heap.size() - 1);
+        siftDown(0);
+        return max;
     }
 
-    // takes a list of items E and builds the heap and then prints
-    // decreasing values of E with calls to removeHeap().
-    public void heapSort(List<E> list){
-
-    }
-
-    // merges the other maxheap with this maxheap to produce a new maxHeap.
-    public void heapMerge(MaxHeap<E> other){
-        for (E val: other.heap) {
-            this.add(val);
+    public void siftUp(int current) {
+        while (current > 0 && this.heap.get(parent(current)).compareTo(this.heap.get(current)) < 0) {
+            Collections.swap(this.heap, current, parent(current));
+            current = parent(current);
         }
     }
 
-    //takes a list of items E and builds the heap by calls to addHeap(..)
-    public void buildHeap(List<E> list) {
-        for (E val: list) {
-            addHeap(val);
-        }
-    }
-
-    public void print() {
-        int row = 1;
-        int count = 0;
-
-        for (E i: this.heap) {
-            if (count == row) {
-                System.out.println();
-                count = 0;
-                row++;
+    public void siftDown(int current) {
+        while (leftChild(current) < this.heap.size()) {
+            int toSwap = leftChild(current);
+            if (toSwap + 1 < this.heap.size() && this.heap.get(toSwap + 1).compareTo(this.heap.get(toSwap)) > 0) {
+                toSwap = rightChild(current);
             }
-
-            System.out.printf("%d ", i);
-            count++;
+            if (this.heap.get(current).compareTo(this.heap.get(toSwap)) > 0)
+                break;
+            Collections.swap(this.heap, current, toSwap);
         }
     }
 
-    public static void main(String[] args) {
-        MaxHeap h = new MaxHeap();
-        ArrayList<Integer> arrl = new ArrayList<>();
-        arrl.add(9);
-        arrl.add(7);
-        arrl.add(10);
-        arrl.add(99);
 
-        h.buildHeap(arrl);
-        h.print();
+
+    /** takes a list of items E and builds the heap and then prints, decreasing values of E with calls to removeHeap(). **/
+    public void heapSort(List<E> list) {
+        buildHeap(list);
+        while (this.heap.size() > 0) {
+            System.out.println(removeHeap());
+        }
     }
 
+    /** merges the other maxheap with this maxheap to produce a new maxHeap. **/
+    public void heapMerge(MaxHeap<E> other){
+        while (other.size() > 0) {
+            this.add(other.removeHeap());
+        }
+    }
 
+    /** takes a list of items E and builds the heap by calls to addHeap(..) **/
+    public void buildHeap(List<E> list) {
+        for (E i : list) {
+            addHeap(i);
+        }
+    }
 }
